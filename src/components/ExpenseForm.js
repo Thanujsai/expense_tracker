@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input, Button } from 'antd';
 import { AutoComplete } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 import ExpenseTile from './ExpenseTile';
 
 const options = [
@@ -13,31 +14,60 @@ function ExpenseForm() {
   const [expenseName, setExpenseName] = useState('');
   const [amountValue, setAmountValue] = useState('');
   const [categoryValue, setCategoryValue] = useState('');
-  const [atleastOneExpense, setAtleastOneExpense] = useState(false);
+  const [id,setId] = useState('');
+  const [expenses, setExpenses] = useState(() => {
+    const savedExpenses = JSON.parse(localStorage.getItem('expenses'));
+    return savedExpenses || [];
+  });
+  const [totalExpenses, setTotalExpenses] = useState(() => {
+    const savedTotal = JSON.parse(localStorage.getItem('totalExpenses'));
+    return savedTotal || 0;
+  });
 
-  const expense = (e) => {
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+    localStorage.setItem('totalExpenses', JSON.stringify(totalExpenses));
+    localStorage.setItem('id',id);
+  }, [expenses, totalExpenses]);
+
+  const handleExpenseNameChange = (e) => {
     setExpenseName(e.target.value);
-  }
+  };
 
-  const amount = (e) => {
+  const handleAmountChange = (e) => {
     setAmountValue(e.target.value);
-  }
+  };
 
-  const category = (value) => {
+  const handleCategoryChange = (value) => {
     setCategoryValue(value);
-  }
+  };
 
   const click = () => {
     if (expenseName && amountValue && categoryValue) {
-      setAtleastOneExpense(true);
+      setId(uuidv4()); 
+      const newExpense = { id: id, expenseName, amountValue, categoryValue };
+      setExpenses([...expenses, newExpense]);
+      setTotalExpenses(totalExpenses + parseInt(amountValue));
+      setExpenseName('');
+      setAmountValue('');
+      setCategoryValue('');
     }
-  }
+  };
 
   return (
     <div>
-      <Input placeholder="Expense Name" style={{ width: '200px' }} onChange={expense} /><br /><br />
-      <Input placeholder="Amount" style={{ width: '200px' }} onChange={amount} /><br /><br />
-
+      <Input
+        placeholder="Expense Name"
+        style={{ width: '200px' }}
+        value={expenseName}
+        onChange={handleExpenseNameChange}
+      /><br /><br />
+      <Input
+        placeholder="Amount"
+        style={{ width: '200px' }}
+        value={amountValue}
+        onChange={handleAmountChange}
+      /><br /><br />
       <AutoComplete
         style={{ width: 200 }}
         options={options.map((option) => ({
@@ -45,13 +75,27 @@ function ExpenseForm() {
           value: option.value,
         }))}
         placeholder="Category"
-        onChange={category}
+        value={categoryValue}
+        onChange={handleCategoryChange}
       /><br /><br />
       <Button type="primary" onClick={click}>Submit</Button>
-      {atleastOneExpense && <ExpenseTile expenseName={expenseName} amountValue={amountValue} categoryValue={categoryValue} />}
-
+      {expenses.length > 0 && (
+        <div>
+          <h3>Total Expenses: ₹{totalExpenses}</h3>
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+        {expenses.map((expense, index) => (
+          <ExpenseTile
+            key={index}
+            expenseName={expense.expenseName}
+            amountValue={expense.amountValue}
+            categoryValue={expense.categoryValue}
+          />
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
 export default ExpenseForm;
