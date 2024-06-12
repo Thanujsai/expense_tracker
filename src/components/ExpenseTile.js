@@ -1,11 +1,12 @@
 import React from 'react';
-import { EditOutlined, EllipsisOutlined, SettingOutlined } from '@ant-design/icons';
-import { Avatar, Card } from 'antd';
+import { EditOutlined, EllipsisOutlined, SettingOutlined, DeleteFilled } from '@ant-design/icons';
+import { Avatar, Card, Button } from 'antd';
 
 const { Meta } = Card;
 
-function ExpenseTile({ expenseName, amountValue, categoryValue }) {
+function ExpenseTile({ id, expenseName, amountValue, categoryValue, deleteTile, editTile }) {
   console.log("in expense tile");
+  console.log(`id is : ${id}`);
   console.log(`${expenseName} ${amountValue} ${categoryValue}`);
 
   let imgSrc;
@@ -33,8 +34,8 @@ function ExpenseTile({ expenseName, amountValue, categoryValue }) {
         }
         actions={[
           <SettingOutlined key="setting" />,
-          <EditOutlined key="edit" />,
-          <EllipsisOutlined key="ellipsis" />,
+          <EditOutlined key="edit" onClick={() => editTile(id)}/>,
+          <DeleteFilled key="ellipsis" onClick={() => deleteTile(id)}/>,
         ]}
       >
         <Meta
